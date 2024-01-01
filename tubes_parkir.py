@@ -1,20 +1,26 @@
 import datetime
 
+# Exception untuk kasus khusus pada aplikasi parkir
 class ParkirError(Exception):
     pass
 
+# Kelas utama aplikasi parkir
 class Parkir:
     def __init__(self):
+        # Dictionary untuk menyimpan data kendaraan yang masuk dan histori transaksi
         self.kendaraan_masuk = {}
         self.histori_transaksi = []
-        self.tarif_per_detik = 10000  # Rp 10.000 per 60 detik
+        # Tarif parkir per detik (default: Rp 10.000 per 60 detik)
+        self.tarif_per_detik = 10000  
 
+    # Fungsi untuk mencatat masuknya kendaraan ke dalam area parkir
     def kendaraan_masuk_area(self, nomor_kendaraan):
         waktu_masuk = datetime.datetime.now()
         self.kendaraan_masuk[nomor_kendaraan] = waktu_masuk
         print("Waktu masuk kendaraan {} dicatat pada {}".format(nomor_kendaraan, waktu_masuk))
         print("Gerbang masuk terbuka. Silahkan masuk.")
 
+    # Fungsi untuk mencatat keluarnya kendaraan dari area parkir
     def kendaraan_keluar_area(self, nomor_kendaraan):
         try:
             if nomor_kendaraan not in self.kendaraan_masuk:
@@ -30,20 +36,22 @@ class Parkir:
             biaya_parkir = total_detik_bulat / 60 * self.tarif_per_detik
             denda = 0
 
+            # Logika penentuan denda berdasarkan durasi parkir
             if total_detik > 240:  # Lebih dari 4 menit
                 denda = biaya_parkir * 0.1  # Denda 10% dari total biaya
-
                 if total_detik > 360:  # Lebih dari 6 menit
                     denda = biaya_parkir * 0.25  # Denda 25% dari total biaya
 
             total_biaya = biaya_parkir + denda
 
+            # Menampilkan informasi transaksi
             print("Waktu keluar kendaraan {} dicatat pada {}".format(nomor_kendaraan, waktu_keluar))
             print("Durasi parkir: {} detik".format(total_detik))
             print("Biaya parkir: Rp {:.2f}".format(biaya_parkir))
             print("Denda: Rp {:.2f}".format(denda))
             print("Total biaya: Rp {:.2f}".format(total_biaya))
 
+            # Merekam transaksi ke dalam histori transaksi
             self.histori_transaksi.append({
                 'Nomor Kendaraan': nomor_kendaraan,
                 'Waktu Masuk': waktu_masuk,
@@ -54,8 +62,10 @@ class Parkir:
                 'Total Biaya': total_biaya
             })
 
-            self.kendaraan_masuk.pop(nomor_kendaraan)  # Hapus kendaraan yang keluar
+            # Menghapus kendaraan dari daftar yang masih masuk
+            self.kendaraan_masuk.pop(nomor_kendaraan)  
 
+            # Proses pembayaran
             while True:
                 try:
                     nominal_pembayaran = float(input("Masukkan nominal pembayaran: Rp "))
@@ -71,6 +81,7 @@ class Parkir:
         except ParkirError as e:
             print("Error:", str(e))
 
+    # Fungsi untuk menu admin parkir
     def admin_parkir(self, pin):
         if pin != "1234":  # PIN admin parkir (ganti sesuai kebutuhan)
             print("Error: PIN salah.")
@@ -89,6 +100,7 @@ class Parkir:
             else:
                 print("Error: Pilihan tidak valid.")
 
+    # Fungsi untuk mencetak seluruh transaksi parkir
     def cetak_transaksi_parkir(self):
         print("\nSeluruh Transaksi Parkir:")
         for transaksi in self.histori_transaksi:
@@ -102,6 +114,7 @@ class Parkir:
             print("--------------------")
 
 if __name__ == "__main__":
+    # Inisialisasi objek aplikasi parkir
     parkir_app = Parkir()
 
     while True:
