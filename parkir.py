@@ -15,13 +15,16 @@ class Parkir:
 
     # Fungsi untuk mencatat masuknya kendaraan ke dalam area parkir
     def kendaraan_masuk_area(self, nomor_kendaraan):
-        if nomor_kendaraan in self.kendaraan_masuk:
-            raise ParkirError("Kendaraan dengan nomor {} sudah tercatat masuk.".format(nomor_kendaraan))
-        
-        waktu_masuk = datetime.datetime.now()
-        self.kendaraan_masuk[nomor_kendaraan] = {'waktu_masuk': waktu_masuk, 'sudah_keluar': False}
-        print("Waktu masuk kendaraan {} dicatat pada {}".format(nomor_kendaraan, waktu_masuk))
-        print("Gerbang masuk terbuka. Silahkan masuk.")
+        try:
+            if nomor_kendaraan in self.kendaraan_masuk:
+                raise ParkirError("Kendaraan dengan nomor {} sudah tercatat masuk.".format(nomor_kendaraan))
+
+            waktu_masuk = datetime.datetime.now()
+            self.kendaraan_masuk[nomor_kendaraan] = waktu_masuk
+            print("Waktu masuk kendaraan {} dicatat pada {}".format(nomor_kendaraan, waktu_masuk))
+            print("Gerbang masuk terbuka. Silahkan masuk.")
+        except ParkirError as e:
+            print("Parkir Error:", str(e))
 
     # Fungsi untuk mencatat keluarnya kendaraan dari area parkir
     def kendaraan_keluar_area(self, nomor_kendaraan):
