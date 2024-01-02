@@ -12,19 +12,15 @@ class Parkir:
         self.histori_transaksi = []
         # Tarif parkir per detik (default: Rp 10.000 per 60 detik)
         self.tarif_per_detik = 10000  
+        # Durasi maksimal tarif parkir (4 menit)
+        self.durasi_max_tarif = 240  
 
     # Fungsi untuk mencatat masuknya kendaraan ke dalam area parkir
     def kendaraan_masuk_area(self, nomor_kendaraan):
-        try:
-            if nomor_kendaraan in self.kendaraan_masuk:
-                raise ParkirError("Kendaraan dengan nomor {} sudah tercatat masuk.".format(nomor_kendaraan))
-
-            waktu_masuk = datetime.datetime.now()
-            self.kendaraan_masuk[nomor_kendaraan] = {'waktu_masuk': waktu_masuk, 'sudah_keluar': False}
-            print("Waktu masuk kendaraan {} dicatat pada {}".format(nomor_kendaraan, waktu_masuk))
-            print("Gerbang masuk terbuka. Silahkan masuk.")
-        except ParkirError as e:
-            print("Parkir Error:", str(e))
+        waktu_masuk = datetime.datetime.now()
+        self.kendaraan_masuk[nomor_kendaraan] = waktu_masuk
+        print("Waktu masuk kendaraan {} dicatat pada {}".format(nomor_kendaraan, waktu_masuk))
+        print("Gerbang masuk terbuka. Silahkan masuk.")
 
     # Fungsi untuk mencatat keluarnya kendaraan dari area parkir
     def kendaraan_keluar_area(self, nomor_kendaraan):
@@ -32,35 +28,24 @@ class Parkir:
             if nomor_kendaraan not in self.kendaraan_masuk:
                 raise ParkirError("Kendaraan dengan nomor {} tidak tercatat masuk.".format(nomor_kendaraan))
 
-            if self.kendaraan_masuk[nomor_kendaraan]['sudah_keluar']:
-                raise ParkirError("Kendaraan dengan nomor {} sudah keluar sebelumnya.".format(nomor_kendaraan))
-
-            waktu_masuk = self.kendaraan_masuk[nomor_kendaraan]['waktu_masuk']
+            waktu_masuk = self.kendaraan_masuk[nomor_kendaraan]
             waktu_keluar = datetime.datetime.now()
             durasi_parkir = waktu_keluar - waktu_masuk
 
             total_detik = durasi_parkir.total_seconds()
             total_detik_bulat = max(round(total_detik / 60), 1) * 60  # Pembulatan waktu parkir (minimal 60 detik)
 
+            # Maksimal waktu parkir adalah 4 menit (240 detik)
+            total_detik_bulat = min(total_detik_bulat, self.durasi_max_tarif)
+
             biaya_parkir = total_detik_bulat / 60 * self.tarif_per_detik
             denda = 0
 
             # Logika penentuan denda berdasarkan durasi parkir
-            if 0 <= total_detik <= 60:
-                biaya_parkir = 10000
-            elif 61 <= total_detik <= 120:
-                biaya_parkir = 20000
-            elif 121 <= total_detik <= 180:
-                biaya_parkir = 30000
-            elif 181 <= total_detik <= 240:
-                biaya_parkir = 40000 
-            elif 241 < total_detik <= 360:
-                biaya_parkir = 40000
+            if total_detik > self.durasi_max_tarif:  # Lebih dari 4 menit
                 denda = biaya_parkir * 0.1  # Denda 10% dari total biaya
-            elif total_detik > 360:
-                biaya_parkir = 40000 + (40000*0.25)
-                denda = biaya_parkir * 0.25  # Denda 25% dari total biaya
-
+                if total_detik > 360:  # Lebih dari 6 menit
+                    denda = biaya_parkir * 0.25  # Denda 25% dari total biaya
 
             total_biaya = biaya_parkir + denda
 
@@ -82,8 +67,8 @@ class Parkir:
                 'Total Biaya': total_biaya
             })
 
-            # Mengubah status kendaraan menjadi sudah keluar
-            self.kendaraan_masuk[nomor_kendaraan]['sudah_keluar'] = True  
+            # Menghapus kendaraan dari daftar yang masih masuk
+            self.kendaraan_masuk.pop(nomor_kendaraan)  
 
             # Proses pembayaran
             while True:
@@ -108,29 +93,21 @@ class Parkir:
             return
 
         while True:
-            print("\n=== MENU ADMIN PARKIR ===")
+            print("\nMenu Admin Parkir:")
             print("1. Cetak Seluruh Transaksi Parkir")
-            print("2. Lihat Kendaraan yang Sedang Parkir")
-            print("3. Keluar")
-            print("=============================")
+            print("2. Keluar")
             choice = input("Pilih menu: ")
 
             if choice == "1":
                 self.cetak_transaksi_parkir()
             elif choice == "2":
-                self.lihat_kendaraan_parkir()
-            elif choice == "3":
                 break
             else:
                 print("Error: Pilihan tidak valid.")
 
     # Fungsi untuk mencetak seluruh transaksi parkir
     def cetak_transaksi_parkir(self):
-        if not self.histori_transaksi:
-            print("Belum ada transaksi parkir yang berlangsung.")
-            return
-        
-        print("\n=== SELURUH TRANSAKSI PARKIR ===")
+        print("\nSeluruh Transaksi Parkir:")
         for transaksi in self.histori_transaksi:
             print("Nomor Kendaraan: {}".format(transaksi['Nomor Kendaraan']))
             print("Waktu Masuk: {}".format(transaksi['Waktu Masuk']))
@@ -139,28 +116,18 @@ class Parkir:
             print("Biaya Parkir: Rp {:.2f}".format(transaksi['Biaya Parkir']))
             print("Denda: Rp {:.2f}".format(transaksi['Denda']))
             print("Total Biaya: Rp {:.2f}".format(transaksi['Total Biaya']))
-            print("=============================")
-
-    # Fungsi untuk melihat kendaraan yang sedang parkir
-    def lihat_kendaraan_parkir(self):
-        print("\n=== KENDARAAN YANG SEDANG PARKIR ===")
-        for nomor_kendaraan, data_kendaraan in self.kendaraan_masuk.items():
-            if not data_kendaraan['sudah_keluar']:
-                print("Nomor Kendaraan: {}".format(nomor_kendaraan))
-                print("Waktu Masuk: {}".format(data_kendaraan['waktu_masuk']))
-                print("=============================")
+            print("--------------------")
 
 if __name__ == "__main__":
     # Inisialisasi objek aplikasi parkir
     parkir_app = Parkir()
 
     while True:
-        print("\n===== APLIKASI PARKIR =====")
+        print("\nMenu Utama:")
         print("1. Masuk Area Parkir")
         print("2. Keluar Area Parkir")
         print("3. Admin Parkir")
-        print("4. End Program")
-        print("===========================")
+        print("4. Keluar Aplikasi")
         choice = input("Pilih menu: ")
 
         if choice == "1":

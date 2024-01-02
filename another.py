@@ -42,25 +42,17 @@ class Parkir:
             total_detik = durasi_parkir.total_seconds()
             total_detik_bulat = max(round(total_detik / 60), 1) * 60  # Pembulatan waktu parkir (minimal 60 detik)
 
-            biaya_parkir = total_detik_bulat / 60 * self.tarif_per_detik
+            # Tarif parkir maksimal setara dengan tarif 4 menit
+            tarif_maksimal = 4 * self.tarif_per_detik / 60
+            biaya_parkir = min(total_detik_bulat * self.tarif_per_detik, tarif_maksimal)
+            
             denda = 0
 
             # Logika penentuan denda berdasarkan durasi parkir
-            if 0 <= total_detik <= 60:
-                biaya_parkir = 10000
-            elif 61 <= total_detik <= 120:
-                biaya_parkir = 20000
-            elif 121 <= total_detik <= 180:
-                biaya_parkir = 30000
-            elif 181 <= total_detik <= 240:
-                biaya_parkir = 40000 
-            elif 241 < total_detik <= 360:
-                biaya_parkir = 40000
+            if total_detik > 240:  # Lebih dari 4 menit
                 denda = biaya_parkir * 0.1  # Denda 10% dari total biaya
-            elif total_detik > 360:
-                biaya_parkir = 40000 + (40000*0.25)
-                denda = biaya_parkir * 0.25  # Denda 25% dari total biaya
-
+                if total_detik > 360:  # Lebih dari 6 menit
+                    denda = biaya_parkir * 0.25  # Denda 25% dari total biaya
 
             total_biaya = biaya_parkir + denda
 
