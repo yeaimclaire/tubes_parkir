@@ -37,7 +37,7 @@ class Parkir:
             if self.kendaraan_masuk[nomor_kendaraan]['sudah_keluar']:
                 raise ParkirError("Kendaraan dengan nomor {} sudah keluar sebelumnya.".format(nomor_kendaraan))
 
-            waktu_masuk = self.kendaraan_masuk[nomor_kendaraan]['waktu_masuk']
+            waktu_masuk = self.kendaraan_masuk[nomor_kendaraan]
             waktu_keluar = datetime.datetime.now()
             durasi_parkir = waktu_keluar - waktu_masuk
 
@@ -102,17 +102,16 @@ class Parkir:
             return
 
         while True:
-            print("\n=== MENU ADMIN PARKIR ===")
+            print("\nMenu Admin Parkir:")
             print("1. Cetak Seluruh Transaksi Parkir")
-            print("2. Lihat Kendaraan yang Sedang Parkir")
+            print("2. Kendaraan Sedang Parkir")
             print("3. Keluar")
-            print("=============================")
             choice = input("Pilih menu: ")
 
             if choice == "1":
                 self.cetak_transaksi_parkir()
             elif choice == "2":
-                self.lihat_kendaraan_parkir()
+                self.cetak_kendaraan_sedang_parkir()
             elif choice == "3":
                 break
             else:
@@ -120,11 +119,7 @@ class Parkir:
 
     # Fungsi untuk mencetak seluruh transaksi parkir
     def cetak_transaksi_parkir(self):
-        if not self.histori_transaksi:
-            print("Belum ada transaksi parkir yang berlangsung.")
-            return
-
-        print("\n=== SELURUH TRANSAKSI PARKIR ===")
+        print("\nSeluruh Transaksi Parkir:")
         for transaksi in self.histori_transaksi:
             print("Nomor Kendaraan: {}".format(transaksi['Nomor Kendaraan']))
             print("Waktu Masuk: {}".format(transaksi['Waktu Masuk']))
@@ -133,28 +128,26 @@ class Parkir:
             print("Biaya Parkir: Rp {:.2f}".format(transaksi['Biaya Parkir']))
             print("Denda: Rp {:.2f}".format(transaksi['Denda']))
             print("Total Biaya: Rp {:.2f}".format(transaksi['Total Biaya']))
-            print("=============================")
+            print("--------------------")
 
-    # Fungsi untuk melihat kendaraan yang sedang parkir
-    def lihat_kendaraan_parkir(self):
-        print("\n=== KENDARAAN YANG SEDANG PARKIR ===")
-        for nomor_kendaraan, data_kendaraan in self.kendaraan_masuk.items():
-            if not data_kendaraan['sudah_keluar']:
-                print("Nomor Kendaraan: {}".format(nomor_kendaraan))
-                print("Waktu Masuk: {}".format(data_kendaraan['waktu_masuk']))
-                print("=============================")
+    # Fungsi untuk mencetak kendaraan yang sedang parkir
+    def cetak_kendaraan_sedang_parkir(self):
+        print("\nKendaraan Sedang Parkir:")
+        for nomor_kendaraan, waktu_masuk in self.kendaraan_masuk.items():
+            print("Nomor Kendaraan: {}".format(nomor_kendaraan))
+            print("Waktu Masuk: {}".format(waktu_masuk))
+            print("--------------------")
 
 if __name__ == "__main__":
     # Inisialisasi objek aplikasi parkir
     parkir_app = Parkir()
 
     while True:
-        print("\n===== APLIKASI PARKIR =====")
+        print("\nMenu Utama:")
         print("1. Masuk Area Parkir")
         print("2. Keluar Area Parkir")
         print("3. Admin Parkir")
-        print("4. End Program")
-        print("===========================")
+        print("4. Keluar Aplikasi")
         choice = input("Pilih menu: ")
 
         if choice == "1":
